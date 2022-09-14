@@ -1,0 +1,109 @@
+---
+title: "High_School_Dropout_Project"
+author: "Saul Varshavsky"
+date: "5/27/2022"
+output: html_document
+---
+
+```{r}
+# import the libraries
+library(tidyverse)
+library(psych)
+library(nycflights13)
+library(ggplot2)
+```
+
+
+
+```{r}
+high_school_dropout_data <- read.csv(file="High_School_Dropout_Statistics_By_County_2012-2013_School_Year_5-Year_Cohort_Dropout_Rates.csv")
+#The above statement imports data from the csv file High_School_Dropout_Statistics_By_County_2012-2013_School_Year_5-Year_Cohort_Dropout_Rates.
+```
+Once the data is imported from that csv file, it's important to make sure that the data is structured in a data frame.  
+```{r}
+is.data.frame(high_school_dropout_data) #This statement checks to see if the data imported from the above csv file is
+#structured in a data frame. If the data is structured in a data frame, TRUE is returned; otherwise, FALSE is returned.
+#Since the result yield TRUE from executing this statement, the data imported from the above csv file is structured
+#in a data frame. 
+```
+Additionally, it's important to make sure there are no missing data among all of the data that is imported from the csv file.
+```{r}
+anyNA(high_school_dropout_data) #This statement checks to see if there is missing data among all of the data that is imported from the csv file. If there is missing data, TRUE is returned; otherwise, FALSE is returned. Since the result yielded FALSE from executing this statement, that means there is no missing data among all of the data that is imported from the csv file.
+```
+Since there is no missing data and all of the data is structured in a data frame, it serves as a verification that many of the functions used for data analysis in R can be used effectively.  Knowing the data is structured in a data frame, it would be beneficial to display all of the columns and the first few rows of the data frame, in order to determine the column names, the type of data each column stores, as well as the total number of columns and rows that comprise the data frame.
+```{r}
+glimpse(high_school_dropout_data) #This statement uses the glimpse function to display all of the columns and the first 
+#few rows of the data frame.
+```
+Based on the results yielded from executing the glimpse function, the data frame contains 39 rows and 5 columns in total. The first column County stores categorical type of data, and this column displays the names of all the counties in Washington (which is 39, as indicated by this source: https://ballotpedia.org/Counties_in_Washington). The second column X2012.2013.Total Dropouts stores numerical types of data in the form of integers, and this column displays the total number of high school dropouts in each county during the 2012-2013 school year. The third column Rank.by.Number displays a numerical rank (classified as an integer data type) for each county in terms of overall quality of living in the U.S. The fourth column Cohort.Dropout.Rate stores numerical types of data in the form of doubles, and this column displays the rate at which students typically dropout from high school based on the county they live in. Finally, the last column Rank.by.Percent displays data that has the same meaning as the data displayed in the Rank.by.Number column, except the data indicates a percentage. Using the information provided by the data frame, the purpose of this data analysis will be to determine the top 10 Washington counties that generally have the highest number of high school dropouts. Using that information, this data analysis will be also used to determine what type of correlations exist between the crime rate, poverty rate, and the dropout rate for each of the top 10 counties; how these correlations can provide a nuanced understanding of certain factors that may contribute to the concerns associated with typical high school dropout rates in these counties.
+  Considering the intentions of performing the data analysis, the columns Rank.by.Number and Rank.by.Percent won't be needed, since these columns don't help the data analysis in any way. Therefore, these columns can be removed from the data frame high_school_dropout_data through the use of the following code: 
+```{r}
+high_school_dropout_data <- select(high_school_dropout_data, "County", "X2012.2013.Total.Dropouts", "Cohort.Dropout.Rate") #This statement indicates that only the columns County, X2012.2013.Total.Dropouts, and Cohort.Dropout.Rate will be kept in the data frame high_school_dropout_data.
+colnames(high_school_dropout_data) #This statement verifies that only the column names specified above are kept in the data frame high_school_dropout_data.
+```
+Since only the columns County, X2012.2013.Total.Dropouts, and Cohort.Dropout.Rate are kept, that means that the remaining columns, which are Rank.by.Number and Rank.by.Percent, are entirely dropped from the data frame high_school_dropout_data. After dropping these columns, there won't be unnecessary data, which will make the process of analyzing data easier and not overwhelming.
+  Besides removing unnecessary columns, the columns X2012.2013.Total.Dropouts and Cohort.Dropout.Rate can be renamed. Since the total number of dropouts a high school has tends to depend on societal conditions rather than the school year it happened, the school year 2012-2013 is not a necessary component when naming a column that holds data indicating the total number of high school dropouts. Therefore, the column X2012.2013.Total.Dropouts can be renamed to Total.Number.Of.Dropouts. Likewise, the word Cohort refers to a group of people who dropped out, and based on its meaning, the word cohort doesn't serve any importance when naming a column that holds data indicating high school dropout rates. Therefore, the column Cohort.Dropout.Rate can be renamed to Dropout.Rate. 
+```{r}
+high_school_dropout_data <- rename(high_school_dropout_data, 
+                                   Total.Number.Of.Dropouts = X2012.2013.Total.Dropouts, 
+                                   Dropout.Rate = Cohort.Dropout.Rate)
+#The above statement renames the column X2012.2013.Total.Dropouts to Total.Number.Of.Dropouts, as well as the column Cohort.Dropout.Rate to Dropout.Rate.
+colnames(high_school_dropout_data) #This statement verifies that the columns X2012.2013.Total.Dropouts and Cohort.Dropout.Rate were renamed as intended.
+```
+  Since the unnecessary columns were removed and two of the necessary columns were renamed, the next step of the data analysis would be to determine the 10 highest numbers of high school dropouts. The following code uses the slice_max function to narrow the amount of data in the data frame high_school_dropout_data, so that only data associated with the top 10 highest numbers of high school dropouts is included:
+```{r}
+high_school_dropout_data <- slice_max(high_school_dropout_data, Total.Number.Of.Dropouts, n=10) #This statement uses the slice_max function to determine the top 10 highest numerical values within the column Total.Number.Of.Dropouts.
+print(high_school_dropout_data) #This statement displays the 10 highest numerical values determined from the above statement, as well as data values from other columns that correspond to the same rows that contains the 10 highest numerical values.
+```
+
+Based on the results obtained from executing the above 2 lines of code, the counties King, Pierce, Snohomish, Clallam, Yakima, Clark, Spokane, Thurston, Kitsap, and Benton are the top 10 counties that generally have the the highest number of high school dropouts. Furthermore, a bar plot can be used to provide a visual representation of the results obtained from executing the slice_max function. The following code creates a bar plot that displays counties that have the 10 highest number of high school dropouts (I used the source https://www.r-graph-gallery.com/218-basic-barplots-with-ggplot2.html for assistance with creating a bar plot through the use of the package ggplot2):
+```{r}
+ggplot(high_school_dropout_data, aes(x=County, y=Total.Number.Of.Dropouts)) +
+  geom_bar(stat="identity") +
+  labs(title="Counties With the 10 Highest Numbers of High School Dropouts",
+       x="Name of County",
+       y="Total Number of High School Dropouts")
+#The above statement creates a bar plot that provides a visual representation of the top 10 Washington counties that generally have the highest numbers of high school dropouts. Based on the results, the county King has by far the highest number of high school dropouts compared to the other 9 counties.
+```
+    After getting a solid visual representation of the top 10 counties that generally have the highest numbers of high school dropouts, the next important step would be to analyze why these 10 counties in particular as opposed to other counties (especially looking at the results from King county, this really begs the "why" behind these statistics). Although there may not be a clear answer to explain the root cause behind these staggering numbers, it may be helpful to analyze whether the high school dropout rates for each of these counties graphed above may correlate with other factors. Based on various statistics obtained from the U.S. News Report, each county is provided with a crime rate as well as a poverty rate. Oftentimes, the media associates these key metrics in relation to students dropping out of high school. According to the American Psychological Association, people who don't graduate high school are more likely to commit crime in their adulthood. Therefore, it's important to see whether there is a positive correlation between a high school dropout rate in a given county and the crime rate that occurs in that county. Additionally, students whose families live in poverty are said to be highly likely to drop out of high school (This information was obtained from the source https://www.apa.org/pi/ses/resources/indicator/2013/05/poverty-dropouts). Therefore, it's also important to see whether there is a positive correlation between the poverty rate in a given county and the high school dropout rate in that county. However, before correlation will be analyzed, a data frame displaying the crime and poverty rate for each county should be created. (The data that displays the crime and poverty rate is obtained from the following sources: 
+    https://www.usnews.com/news/healthiest-communities/washington/benton-county,
+    https://www.usnews.com/news/healthiest-communities/washington/clallam-county,
+    https://www.usnews.com/news/healthiest-communities/washington/clark-county,
+    https://www.usnews.com/news/healthiest-communities/washington/king-county,
+    https://www.usnews.com/news/healthiest-communities/washington/kitsap-county,
+    https://www.usnews.com/news/healthiest-communities/washington/pierce-county,
+    https://www.usnews.com/news/healthiest-communities/washington/snohomish-county,
+    https://www.usnews.com/news/healthiest-communities/washington/spokane-county,
+    https://www.usnews.com/news/healthiest-communities/washington/thurston-county,
+    https://www.usnews.com/news/healthiest-communities/washington/yakima-county)
+```{r}
+county_information <- data.frame("Poverty.Rate" = c(12.8, 15.9, 9.3, 9.6, 9.7, 11.2, 8.1, 14.4, 11.0, 18.2),
+                      "Crime.Rate" = c(194.6, 279.6, 220.2, 340.6, 263.2, 457.8, 204.6, 352.8, 237.2, 272.8))
+#The above statement creates a new data frame called county_information, which stores data that provides information on the Poverty.Rate and Crime.Rate for each county.
+more_high_school_dropout_data <- cbind(high_school_dropout_data, county_information) #This statement combines the data frames high_school_dropout_data and county_information together.
+more_high_school_dropout_data <- select(more_high_school_dropout_data, "County", "Dropout.Rate", "Poverty.Rate", "Crime.Rate")
+#The above statement only keeps the columns County, Dropout.Rate, Poverty.Rate, and Crime.Rate, since the column Total.Number.Of.Dropouts is not needed anymore. Since it was already determined which 10 counties have the highest numbers of high school dropouts, the column Total.Number.Of.Dropouts serves no purpose anymore.
+print(more_high_school_dropout_data) #This statement verifies whether the two data frames were combined, by displaying all of the data from both data frames into one large data frame.
+
+                     
+```
+  Once the two data frames are combined, the correlation between the Dropout Rate with the Poverty and Crime Rates can be analyzed. One way to analyze the correlation between these metrics is by creating two scatter plots that provide a better understanding of the correlations these metrics have.
+```{r}
+ggplot(more_high_school_dropout_data, aes(x=Dropout.Rate, y=Crime.Rate)) + geom_point() + geom_smooth(method=lm, se=FALSE) +
+  labs(title="The Correlation Between a High School Dropout Rate and Its Effect on a Crime Rate",
+       x="High School Dropout Rate", y="Crime Rate")
+#The above statement creates a scatter plot with a linear regression line that displays whether a high school dropout rate plays a role in affecting a crime rate. Since the results display a positive correlation, it can be concluded that a high school dropout rate correlates to an increase in a crime rate down the road.
+ggplot(more_high_school_dropout_data, aes(x=Poverty.Rate, y=Dropout.Rate)) + geom_point() + geom_smooth(method=lm, se=FALSE) +
+  labs(title="The Correlation Between a Poverty Rate and Its Effect on a High School Dropout Rate",
+       x="Poverty Rate", y="High School Dropout Rate")
+#The above statement creates a scatter plot with a linear regression line that displays whether a poverty rate plays a role in affecting a high school dropout rate. Interestingly, the results appear to be displaying the opposite of what was expected to be found by the APA. Knowing there is instead a negative correlation, it can be concluded that a poverty rate actually correlates to a decrease in a high school dropout rate down the road.
+```
+However, these two scatter plots merely present a representation of whether various metrics have a positive or negative correlation. In order to get a specific understanding of how strong the positive and negative correlations are for these various metrics, the following code will be written:
+```{r}
+cor(more_high_school_dropout_data$Dropout.Rate, more_high_school_dropout_data$Crime.Rate)
+#The above statement displays a numerical value indicating the exact correlation between a high school dropout rate and a crime rate. Based on the results, there is a positive correlation of around 0.264. 
+cor(more_high_school_dropout_data$Poverty.Rate, more_high_school_dropout_data$Dropout.Rate)
+#The above statement displays a numerical value indicating the exact correlation between a poverty rate and a high school dropout rate. Based on the results, there is a negative correlation of around -0.263.
+```
+Knowing the results from above, the correlations are weak. Therefore, a high school dropout rate may have some effect on resulting in an increase in a crime rate, but with a positive correlation of around 0.264, the effect is quite minimal. Similarly, a poverty rate may have some effect on resulting in a decrease in a high school dropout rate, but that effect is quite minimal.
+  After performing the data analysis, the dropout rates of the top 10 counties had surprisingly minimal correlation with poverty and crime rates of these counties. Additionally, a poverty rate was known to have a slight correlation with a decrease in a high school dropout rate for a given county. The surprising results that were yielded are very helpful, because they help question assumptions about metrics that were previously thought to have stronger correlations with high school dropout rates. In the future, it may be better to determine which other metrics may have stronger, positive correlations with high school dropout rates, so that efforts can be focused towards making communities foster healthy and high quality education environments for generations to come.
