@@ -29,7 +29,6 @@ https://www.usnews.com/news/healthiest-communities/washington/yakima-county
 
 
 ### Requirements To Use The Code
-
 1) tidyverse
 2) psych
 3) nycflights13
