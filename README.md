@@ -8,7 +8,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-### Business Problem
+### Description
 
 This project aims to investigate which factors contribute to high school dropout rates in the state of Washington.
 
